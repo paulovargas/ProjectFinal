@@ -1,0 +1,183 @@
+<template>
+    <lightning-quick-action-panel class="slds-text-heading_medium slds-m-bottom_small" header="New Account">
+        <!-- Keeping dynamic inputs but using NewAccount panel/structure for styling parity -->
+        <form class="slds-p-around_medium" onsubmit={handleSave}>
+            <lightning-messages></lightning-messages>
+
+            <!-- Account Information -->
+            <div class="slds-box slds-m-bottom_medium">
+                <header class="slds-text-heading_medium slds-m-bottom_small">Account Information</header>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
+                        <template for:each={accountInfoLeft} for:item="fldEntryLeft">
+                            <div key={fldEntryLeft.name} class="slds-p-bottom_small slds-form-element">
+                                <label class="slds-form-element__label slds-text-title_bold" for={fldEntryLeft.name}>{fldEntryLeft.name}</label>
+                                <div class="slds-form-element__control">
+                                    <lightning-input
+                                        name={fldEntryLeft.name}
+                                        data-index={fldEntryLeft.index}
+                                        data-field={fldEntryLeft.name}
+                                        value={fldEntryLeft.value}
+                                        onchange={handleInput}
+                                        onfocus={prepareValue}>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-left_small">
+                        <template for:each={accountInfoRight} for:item="fldEntryRight">
+                            <div key={fldEntryRight.name} class="slds-p-bottom_small slds-form-element">
+                                <label class="slds-form-element__label slds-text-title_bold" for={fldEntryRight.name}>{fldEntryRight.name}</label>
+                                <div class="slds-form-element__control">
+                                    <lightning-input
+                                        name={fldEntryRight.name}
+                                        data-index={fldEntryRight.index}
+                                        data-field={fldEntryRight.name}
+                                        value={fldEntryRight.value}
+                                        onchange={handleInput}
+                                        onfocus={prepareValue}>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="slds-box slds-m-bottom_medium">
+                <header class="slds-text-heading_medium slds-m-bottom_small">Address Information</header>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
+                        <template for:each={addressLeft} for:item="fldEntryLeft">
+                            <div key={fldEntryLeft.name} class="slds-p-bottom_small slds-form-element">
+                                <label class="slds-form-element__label slds-text-title_bold" for={fldEntryLeft.name}>{fldEntryLeft.name}</label>
+                                <div class="slds-form-element__control">
+                                    <lightning-input
+                                        name={fldEntryLeft.name}
+                                        data-index={fldEntryLeft.index}
+                                        data-field={fldEntryLeft.name}
+                                        value={fldEntryLeft.value}
+                                        onchange={handleInput}
+                                        onfocus={prepareValue}>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-left_small">
+                        <template for:each={addressRight} for:item="fldEntryRight">
+                            <div key={fldEntryRight.name} class="slds-p-bottom_small slds-form-element">
+                                <label class="slds-form-element__label slds-text-title_bold" for={fldEntryRight.name}>{fldEntryRight.name}</label>
+                                <div class="slds-form-element__control">
+                                    <lightning-input
+                                        name={fldEntryRight.name}
+                                        data-index={fldEntryRight.index}
+                                        data-field={fldEntryRight.name}
+                                        value={fldEntryRight.value}
+                                        onchange={handleInput}
+                                        onfocus={prepareValue}>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="slds-box slds-m-bottom_medium">
+                <header class="slds-text-heading_medium slds-m-bottom_small">Additional Information</header>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
+                        <template for:each={addressLeft} for:item="fldEntryLeft">
+                            <div key={fldEntryLeft.name} class="slds-p-bottom_small slds-form-element">
+                                <label class="slds-form-element__label slds-text-title_bold" for={fldEntryLeft.name}>{fldEntryLeft.name}</label>
+                                <div class="slds-form-element__control">
+                                    <lightning-input
+                                        name={fldEntryLeft.name}
+                                        data-index={fldEntryLeft.index}
+                                        data-field={fldEntryLeft.name}
+                                        value={fldEntryLeft.value}
+                                        onchange={handleInput}
+                                        onfocus={prepareValue}>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-left_small">
+                        <template for:each={addressRight} for:item="fldEntryRight">
+                            <div key={fldEntryRight.name} class="slds-p-bottom_small slds-form-element">
+                                <label class="slds-form-element__label slds-text-title_bold" for={fldEntryRight.name}>{fldEntryRight.name}</label>
+                                <div class="slds-form-element__control">
+                                    <lightning-input
+                                        name={fldEntryRight.name}
+                                        data-index={fldEntryRight.index}
+                                        data-field={fldEntryRight.name}
+                                        value={fldEntryRight.value}
+                                        onchange={handleInput}
+                                        onfocus={prepareValue}>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description Information -->
+            <div class="slds-box slds-m-bottom_medium">
+                <header class="slds-text-heading_medium slds-m-bottom_small">Description Information</header>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1">
+                        <template for:each={descriptionLeft} for:item="fldEntryLeft">
+                            <div key={fldEntryLeft.name} class="slds-p-bottom_small slds-form-element">
+                                <label class="slds-form-element__label slds-text-title_bold" for={fldEntryLeft.name}>{fldEntryLeft.name}</label>
+                                <div class="slds-form-element__control">
+                                    <lightning-input
+                                        name={fldEntryLeft.name}
+                                        data-index={fldEntryLeft.index}
+                                        data-field={fldEntryLeft.name}
+                                        value={fldEntryLeft.value}
+                                        onchange={handleInput}
+                                        onfocus={prepareValue}
+                                        type="textarea"
+                                        rows="4">
+                                    </lightning-input>
+                                </div>
+                            </div>
+                        </template>
+                        <template for:each={descriptionRight} for:item="fldEntryRight">
+                            <div key={fldEntryRight.name} class="slds-p-bottom_small slds-form-element">
+                                <label class="slds-form-element__label slds-text-title_bold" for={fldEntryRight.name}>{fldEntryRight.name}</label>
+                                <div class="slds-form-element__control">
+                                    <lightning-textarea
+                                        name={fldEntryRight.name}
+                                        data-index={fldEntryRight.index}
+                                        data-field={fldEntryRight.name}
+                                        value={fldEntryRight.value}
+                                        onchange={handleInput}
+                                        onfocus={prepareValue}
+                                        type="textarea"
+                                        rows="4">
+                                    </lightning-textarea>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <div slot="footer">
+                <div class="slds-grid slds-grid_align-end slds-p-top_small" role="toolbar">
+                    <div class="slds-col">
+                        <lightning-button label="Cancelar" onclick={handleCancel}></lightning-button>
+                        <lightning-button class="slds-m-left_small" label="Salvar" type="submit" variant="brand"></lightning-button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </lightning-quick-action-panel>
+</template>
