@@ -14,6 +14,24 @@ export default class AccountCreator extends LightningElement {
     @track fieldEntries = [];
     @track currentValue = '';
 
+    mapReceitaToAccount(raw) {
+        return {
+            'Name': raw.nome,
+        'CNPJ__c': raw.cnpj, // provavelmente custom field
+        'Phone': raw.telefone,
+        'BillingStreet': raw.logradouro,
+        'BillingCity': raw.municipio,
+        'BillingState': raw.uf,
+        'BillingPostalCode': raw.cep,
+        'BillingCountry': 'Brasil',
+        'Description': raw.atividade_principal?.[0]?.text || '',
+        'Industry': raw.atividade_principal?.[0]?.text || '',
+        'Type': raw.tipo,
+        'AccountNumber': raw.numero,
+        'Website': raw.email ? `mailto:${raw.email}` : ''
+        };
+    }
+
     // Use a mock when the wire doesn't return data (useful in dev orgs without schema access).
     // The mock is only used when running locally in dev or when the wire returns no data.
     // It returns a representative set of Account field API names.
@@ -22,7 +40,7 @@ export default class AccountCreator extends LightningElement {
     // Approved fields grouped by block (use API names). Adjust order as requested.
     get MOCK_FIELDS() {
         return [
-            // Account Information
+            // Use human labels as before but underlying aliasMap will map to API names for values
             'CNPJ',
             'Account Name',
             'Parent Account',
@@ -72,9 +90,20 @@ export default class AccountCreator extends LightningElement {
         }
 
         // parse jsonData if present (do this regardless of source of fields)
-        if (this.jsonData) {
+        /* if (this.jsonData) {
             try {
                 this.values = JSON.parse(this.jsonData) || {};
+            } catch (e) {
+                this.values = {};
+            }
+        } */
+
+        if (this.jsonData) {
+            try {
+                console.log("this.jsonData : " + this.jsonData);
+                const raw = this.jsonData;
+                console.log("raw : " + raw);
+                this.values = this.mapReceitaToAccount(raw);
             } catch (e) {
                 this.values = {};
             }
@@ -89,9 +118,32 @@ export default class AccountCreator extends LightningElement {
             ...this.fields.filter((f) => !preferredOrder.includes(f))
         ];
 
+        // ALIAS MAP: map displayed labels (used in MOCK_FIELDS) to actual API names present in this.values
+        const aliasMap = {
+            'Account Name': 'Name',
+            'CNPJ': 'CNPJ__c',
+            'Parent Account': 'ParentId',
+            'Account Number': 'AccountNumber',
+            'Account Site': 'Site',
+            'Annual Revenue': 'AnnualRevenue',
+            'Ticker Symbol': 'TickerSymbol',
+            'Employees': 'NumberOfEmployees',
+            'SIC Code': 'SIC',
+            'Customer Priority': 'CustomerPriority__c',
+            'SLA Expiration Date': 'SLA_Expiration_Date__c',
+            'Number of Locations': 'Number_of_Locations__c',
+            'Active': 'Active__c',
+            'SLA': 'SLA__c',
+            'SLA Serial Number': 'SLA_Serial_Number__c',
+            'Upsell Opportunity': 'Upsell_Opportunity__c'
+        };
+
         // build fieldEntries for template binding: [{ name, value, index }, ...] in the orderedFields sequence
         const flatEntries = orderedFields.map((f, i) => {
-            return { name: f, value: this.values && f in this.values ? this.values[f] : '', index: i };
+            // Resolve alias: if the displayed field name f has a mapping to an API name, use it to get the value
+            const apiName = aliasMap[f] || f;
+            const value = this.values && apiName in this.values ? this.values[apiName] : '';
+            return { name: f, value: value, index: i };
         });
 
         // Map fields to their intended blocks based on name patterns / explicit lists.
@@ -173,13 +225,17 @@ export default class AccountCreator extends LightningElement {
     // Persist changes back into the values map without computed access in template
     handleInput(event) {
         const index = Number(event.target.dataset.index);
-        const field = this.fields[index];
+        /* const field = this.fields[index]; */
+        const displayedName = this.fieldEntries[index].name;
         const newVal = event.target.value;
 
-        // Reassign to trigger reactivity
-        this.values = { ...this.values, [field]: newVal };
+        // Resolve to API name when recording into this.values (keep values keyed by API names)
+        const apiName = (this.aliasMap && this.aliasMap[displayedName]) || displayedName;
 
-        // update fieldEntries for template binding
+        // Reassign to trigger reactivity; store under apiName
+        this.values = { ...this.values, [apiName]: newVal };
+
+        // update fieldEntries for template binding (preserve displayedName)
         const newEntries = this.fieldEntries.map((entry, i) => {
             if (i === index) {
                 return { name: entry.name, value: newVal };
