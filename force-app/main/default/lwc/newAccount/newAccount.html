@@ -1,27 +1,175 @@
 <template>
-    <lightning-quick-action-panel header="Nova Conta">
-        <lightning-record-edit-form
-            object-api-name="Account"
-            onsuccess={handleSuccess}
-        >
+    <lightning-quick-action-panel class="slds-text-heading_medium slds-m-bottom_small" header="New Account">
+        <form class="slds-p-around_medium" onsubmit={handleSave}>
             <lightning-messages></lightning-messages>
 
-            <lightning-input-field field-name="Name"></lightning-input-field>
-            <lightning-input-field field-name="Phone"></lightning-input-field>
-            <lightning-input-field field-name="Website"></lightning-input-field>
+            <!-- Account Information -->
+            <div class="slds-box slds-m-bottom_medium">
+                <header class="slds-text-heading_medium slds-m-bottom_small">Account Information</header>
+                <div class="slds-grid slds-wrap">
 
-            <div slot="footer">
-                <lightning-button
-                    label="Cancelar"
-                    onclick={handleCancel}
-                ></lightning-button>
-                <lightning-button
-                    class="slds-m-left_small"
-                    label="Salvar"
-                    type="submit"
-                    variant="brand"
-                ></lightning-button>
+                    <!-- LEFT -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <!-- Input + Botão alinhados -->
+                            <div
+                                class="slds-form-element__control slds-grid slds-grid_vertical-align-center slds-gutters">
+                                <!-- Input -->
+                                <div class="slds-col">
+                                    <lightning-input name="CNPJ__c" label="CNPJ" value={cnpj} data-index="0"
+                                        onchange={handleInput} required>
+                                    </lightning-input>
+                                </div>
+
+                                <!-- Botão -->
+                                <div class="slds-col slds-text-body_regular">
+                                    <lightning-button label="Search" variant="brand" onclick={handleSearchCnpj}>
+                                    </lightning-button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Account Owner</label>
+
+                            <div class="slds-form-element__control">
+                                <div class="slds-media slds-media_center">
+                                    <div class="slds-media__figure">
+                                        <span class="slds-avatar slds-avatar_circle slds-avatar_small">
+                                            <img src={ownerPhoto} alt="User Avatar" />
+                                        </span>
+                                    </div>
+
+                                    <!-- Nome do usuário -->
+                                    <div class="slds-media__body">
+                                        <span>{ownerName}</span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Account Name" data-index="1" value={name}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Parent Account" data-index="2" value={fieldValue2}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Account Number" data-index="3" value={fieldValue3}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Account Site" data-index="4" value={fieldValue4}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Type" data-index="5" value={type}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Industry" data-index="6" value={industry}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Annual Revenue" data-index="7" value={fieldValue7}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-left_small">
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Rating" data-index="8" value={fieldValue8}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Phone" data-index="9" value={phone}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Fax" data-index="10" value={fieldValue10}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Website" data-index="11" value={fieldValue11}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Ticker Symbol" data-index="12" value={fieldValue12}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Ownership" data-index="13" value={fieldValue13}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Employees" data-index="14" value={fieldValue14}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="SIC Code" data-index="15" value={fieldValue15}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                    </div>
+                </div>
             </div>
-        </lightning-record-edit-form>
+
+            <!-- Address Information -->
+            <div class="slds-box slds-m-bottom_medium">
+                <header class="slds-text-heading_medium slds-m-bottom_small">Address Information</header>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Billing Zip/Postal Code" data-index="16" value={cep}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Billing Street" data-index="16" value={street}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Billing City" data-index="17" value={city}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Billing State" data-index="18" value={state}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer padrão Salesforce: botões alinhados à direita -->
+            <div class="slds-grid slds-grid_align-end slds-p-top_small slds-text-body_regular" role="toolbar">
+                <lightning-button label="Cancel" onclick={handleCancel}></lightning-button>
+                <lightning-button class="slds-m-left_small" label="Save" type="submit" variant="brand"></lightning-button>
+            </div>
+
+        </form>
     </lightning-quick-action-panel>
 </template>

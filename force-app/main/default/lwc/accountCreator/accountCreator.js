@@ -68,7 +68,13 @@ export default class AccountCreator extends LightningElement {
             Name: raw.nome || '',
             CNPJ__c: raw.cnpj || '',
             Phone: raw.telefone || '',
-            BillingStreet: raw.logradouro || '',
+            BillingStreet: [
+                [raw.logradouro, raw.numero].filter(Boolean).join(', '),
+                raw.complemento,
+                raw.bairro ? `- ${raw.bairro}` : null
+            ]
+            .filter(Boolean)
+            .join(' '),
             BillingCity: raw.municipio || '',
             BillingState: raw.uf || '',
             BillingPostalCode: raw.cep || '',

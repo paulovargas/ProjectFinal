@@ -1,7 +1,7 @@
 public with sharing class ReceitaWSService {
 
     @AuraEnabled(cacheable=false)
-    public static String consultarCNPJ(String cnpj) {
+    public static String searchCNPJ(String cnpj) {
 
         try {
             Http http = new Http();

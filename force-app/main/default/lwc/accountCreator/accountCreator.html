@@ -136,6 +136,11 @@
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
 
                         <div class="slds-p-bottom_small slds-form-element">
+                            <lightning-input label="Billing Zip/Postal Code" data-index="16" value={cep}
+                                onchange={handleInput}></lightning-input>
+                        </div>
+
+                        <div class="slds-p-bottom_small slds-form-element">
                             <lightning-input label="Billing Street" data-index="16" value={street}
                                 onchange={handleInput}></lightning-input>
                         </div>
