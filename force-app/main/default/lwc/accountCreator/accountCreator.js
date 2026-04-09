@@ -1,9 +1,23 @@
-import { LightningElement, api, track } from 'lwc';
+import { LightningElement, api, track, wire } from 'lwc';
+import { getRecord } from 'lightning/uiRecordApi';
+import USER_ID from '@salesforce/user/Id';
+import NAME_FIELD from '@salesforce/schema/User.Name';
+import SMALL_PHOTO from '@salesforce/schema/User.SmallPhotoUrl';
 
 export default class AccountCreator extends LightningElement {
     @api jsonData;
 
     @track values = {};
+
+    ownerName;
+
+    @wire(getRecord, { recordId: USER_ID, fields: [NAME_FIELD, SMALL_PHOTO] })
+    user({ data }) {
+        if (data) {
+            this.ownerName = data.fields.Name.value;
+            this.ownerPhoto = data.fields.SmallPhotoUrl.value;
+        }
+    }
 
     connectedCallback() {
         this.loadData();
@@ -14,6 +28,7 @@ export default class AccountCreator extends LightningElement {
             let raw;
 
             if (this.jsonData) {
+                console.log('jsonData :', this.jsonData);
                 raw = typeof this.jsonData === 'string'
                     ? JSON.parse(this.jsonData)
                     : this.jsonData;
