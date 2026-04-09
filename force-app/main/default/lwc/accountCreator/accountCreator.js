@@ -101,25 +101,68 @@ export default class AccountCreator extends LightningElement {
         if (this.jsonData) {
             try {
                 console.log("this.jsonData : " + this.jsonData);
-                const raw = this.jsonData;
-                console.log("raw : " + raw);
+                // jsonData may be provided as a JSON string or an object.
+                // Parse safely if it's a string, otherwise use as-is.
+                let raw;
+                if (typeof this.jsonData === 'string') {
+                    try {
+                        raw = JSON.parse(this.jsonData);
+                    } catch (parseErr) {
+                        // If parsing fails, log and fallback to empty object
+                        console.error('Failed to parse jsonData string:', parseErr);
+                        raw = {};
+                    }
+                } else {
+                    raw = this.jsonData;
+                }
+                console.log("raw : ", raw);
                 this.values = this.mapReceitaToAccount(raw);
             } catch (e) {
+                console.error('Error mapping jsonData to account values:', e);
                 this.values = {};
             }
         }
 
         // Ensure fields are ordered to match MOCK_FIELDS when possible, otherwise preserve wire order.
         const preferredOrder = this.MOCK_FIELDS;
-        const fieldsSet = new Set(this.fields);
-        // Build orderedFields by taking fields in preferredOrder that exist, then append any remaining fields from this.fields
-        const orderedFields = [
-            ...preferredOrder.filter((f) => fieldsSet.has(f)),
-            ...this.fields.filter((f) => !preferredOrder.includes(f))
-        ];
+
+        // Build a normalization helper to compare labels/API names tolerant to case/spacing/underscores
+        const normalizeName = (s) => String(s || '').toLowerCase().replace(/[_\s]/g, '');
+
+        // Map normalized apiName -> actual apiName from this.fields
+        const fieldsMap = new Map();
+        this.fields.forEach((api) => {
+            fieldsMap.set(normalizeName(api), api);
+        });
+
+        // Build orderedFields as an array of objects: { label, apiName }
+        const orderedFields = [];
+
+        // First, take preferredOrder labels and resolve to actual api names when possible
+        preferredOrder.forEach((label) => {
+            const normalizedLabel = normalizeName(label);
+            const matchingApi = fieldsMap.get(normalizedLabel);
+            if (matchingApi) {
+                orderedFields.push({ label: label, apiName: matchingApi });
+            } else {
+                // If no matching API found, still include the label as-is (apiName=null)
+                orderedFields.push({ label: label, apiName: null });
+            }
+        });
+
+        // Then append any remaining api fields from this.fields that weren't matched yet
+        this.fields.forEach((api) => {
+            const normalizedApi = normalizeName(api);
+            const alreadyIncluded = orderedFields.some((o) => normalizeName(o.label) === normalizedApi || normalizeName(o.apiName) === normalizedApi);
+            if (!alreadyIncluded) {
+                // Use the API name as the label when no human label exists
+                orderedFields.push({ label: api, apiName: api });
+            }
+        });
 
         // ALIAS MAP: map displayed labels (used in MOCK_FIELDS) to actual API names present in this.values
-        const aliasMap = {
+        // Expose aliasMap on the component instance so other methods (e.g., handleInput) can access it.
+        this.aliasMap = {
             'Account Name': 'Name',
             'CNPJ': 'CNPJ__c',
             'Parent Account': 'ParentId',
@@ -141,10 +184,27 @@ export default class AccountCreator extends LightningElement {
         // build fieldEntries for template binding: [{ name, value, index }, ...] in the orderedFields sequence
         const flatEntries = orderedFields.map((f, i) => {
             // Resolve alias: if the displayed field name f has a mapping to an API name, use it to get the value
-            const apiName = aliasMap[f] || f;
+            const apiName = (this.aliasMap && this.aliasMap[f]) || f;
             const value = this.values && apiName in this.values ? this.values[apiName] : '';
             return { name: f, value: value, index: i };
         });
+
+        // DIAGNOSTIC LOGS: help debug why template arrays might be empty in UI
+        // These logs are temporary — remove them after debugging.
+        console.log('DEBUG: this.fields ->', this.fields);
+        console.log('DEBUG: orderedFields ->', orderedFields);
+        console.log('DEBUG: flatEntries ->', flatEntries);
+        // Also log parsed values and mapping to help trace why values may not match labels/API names
+        console.log('DEBUG: this.values ->', this.values);
+        try {
+            console.log('DEBUG: mapReceitaToAccount(raw) sample ->', this.mapReceitaToAccount(
+                typeof this.jsonData === 'string' ? (() => { try { return JSON.parse(this.jsonData); } catch(e){ return {}; } })() : this.jsonData
+            ));
+        } catch (mapErr) {
+            console.error('DEBUG: mapReceitaToAccount threw', mapErr);
+        }
+        // Log block lengths after they're constructed to avoid ReferenceError
+        // (will be printed further down once blocks are built)
 
         // Map fields to their intended blocks based on name patterns / explicit lists.
         // Define block membership by API name or label as used in MOCK_FIELDS.
