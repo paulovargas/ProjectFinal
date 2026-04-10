@@ -1,7 +1,63 @@
 <template>
     <lightning-quick-action-panel class="slds-text-heading_medium slds-m-bottom_small" header="New Account">
-        <form class="slds-p-around_medium" onsubmit={handleSave}>
-            <lightning-messages></lightning-messages>
+        <!-- Wrapper relativo para overlay do spinner -->
+        <div class="slds-is-relative">
+            <!-- Overlay absoluto com spinner -->
+            <template if:true={isLoading}>
+                <div style="position:absolute; inset:0; background:rgba(255,255,255,0.6); z-index: 9000;" class="slds-grid slds-grid_align-center slds-grid_vertical-align-center">
+                    <lightning-spinner alternative-text="Carregando..." size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Modal: registro existente encontrado pelo CNPJ -->
+            <template if:true={showFoundModal}>
+                <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open">
+                    <div class="slds-modal__container">
+                        <header class="slds-modal__header">
+                            <h2 id="modal-heading-01" class="slds-text-heading_medium">Registro já cadastrado</h2>
+                        </header>
+                        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                            <p>
+                                Já existe uma Account com este CNPJ.
+                                Deseja editar o registro existente ou cancelar para continuar nesta tela?
+                            </p>
+                        </div>
+                        <footer class="slds-modal__footer">
+                            <lightning-button label="Cancelar" onclick={handleCloseModal}></lightning-button>
+                            <lightning-button class="slds-m-left_small" variant="brand" label="Editar registro" onclick={handleEditRecord}></lightning-button>
+                        </footer>
+                    </div>
+                </section>
+                <div class="slds-backdrop slds-backdrop_open"></div>
+            </template>
+
+            <!-- Modal: Buscar por CNPJ (somente campo e ações) -->
+            <template if:true={showCnpjSearchModal}>
+                <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-02" class="slds-modal slds-fade-in-open">
+                    <div class="slds-modal__container">
+                        <header class="slds-modal__header">
+                            <h2 id="modal-heading-02" class="slds-text-heading_medium">Buscar por CNPJ</h2>
+                        </header>
+                        <div class="slds-modal__content slds-p-around_medium">
+                            <lightning-input
+                                name="cnpjModal"
+                                label="CNPJ"
+                                value={cnpjModalValue}
+                                onchange={handleCnpjModalInput}
+                                message-when-bad-input="Informe um CNPJ válido"
+                            ></lightning-input>
+                        </div>
+                        <footer class="slds-modal__footer">
+                            <lightning-button label="Cancelar" onclick={closeCnpjSearchModal}></lightning-button>
+                            <lightning-button class="slds-m-left_small" variant="brand" label="Buscar" onclick={handleCnpjModalSearch}></lightning-button>
+                        </footer>
+                    </div>
+                </section>
+                <div class="slds-backdrop slds-backdrop_open"></div>
+            </template>
+
+            <form class="slds-p-around_medium" onsubmit={handleSave}>
+                <lightning-messages></lightning-messages>
 
             <!-- Account Information -->
             <div class="slds-box slds-m-bottom_medium">
@@ -26,6 +82,7 @@
                                 <div class="slds-col slds-text-body_regular">
                                     <lightning-button label="Search" variant="brand" onclick={handleSearchCnpj}>
                                     </lightning-button>
+                                    <lightning-button class="slds-m-left_small" label="Buscar por CNPJ (Modal)" onclick={openCnpjSearchModal}></lightning-button>
                                 </div>
                             </div>
                         </div>
@@ -170,6 +227,7 @@
                 <lightning-button class="slds-m-left_small" label="Save" type="submit" variant="brand"></lightning-button>
             </div>
 
-        </form>
+            </form>
+        </div>
     </lightning-quick-action-panel>
 </template>
