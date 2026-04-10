@@ -1,6 +1,6 @@
 <template>
     <lightning-quick-action-panel class="slds-text-heading_medium slds-m-bottom_small" header="New Account with CNPJ">
-        <div class="slds-p-around_medium">
+        <div class="slds-p-around_medium slds-align_absolute-center">
             <lightning-button label="Search" variant="brand" onclick={handleSearchCnpj}></lightning-button>
         </div>
 
@@ -21,8 +21,8 @@
                         ></lightning-input>
                     </div>
                     <footer class="slds-modal__footer">
-                        <lightning-button label="Cancelar" onclick={closeCnpjSearchModal}></lightning-button>
-                        <lightning-button class="slds-m-left_small" variant="brand" label="Buscar" onclick={handleCnpjModalSearch}></lightning-button>
+                        <lightning-button label="Cancel" onclick={closeCnpjSearchModal}></lightning-button>
+                        <lightning-button class="slds-m-left_small" variant="brand" label="Search" onclick={handleCnpjModalSearch}></lightning-button>
                     </footer>
                 </div>
             </section>

@@ -178,11 +178,31 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
 
     // Modal: busca por CNPJ (abrir/fechar e input controlado)
     openCnpjSearchModal() {
-        this.showCnpjSearchModal = true;
+        // Garante estado limpo ao reabrir
         this.cnpjModalValue = (this.values?.CNPJ__c || '');
+        this.showCnpjSearchModal = true;
+        // limpa qualquer erro preso após montar
+        requestAnimationFrame(() => {
+            const input = this.template.querySelector('lightning-input[name="cnpjModal"]');
+            if (input) {
+                input.setCustomValidity('');
+                input.reportValidity();
+            }
+        });
     }
     closeCnpjSearchModal() {
+        // Fecha modal
         this.showCnpjSearchModal = false;
+        // Limpa estado/validações em seguida
+        setTimeout(() => {
+            const input = this.template.querySelector('lightning-input[name="cnpjModal"]');
+            if (input) {
+                input.setCustomValidity('');
+                input.reportValidity();
+                input.value = '';
+            }
+            this.cnpjModalValue = '';
+        }, 0);
     }
     handleCnpjModalInput(event) {
         this.cnpjModalValue = event.target.value || '';
@@ -194,6 +214,11 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
         try {
             const cnpj = (this.cnpjModalValue || '').replace(/\D/g, '');
             if (!cnpj) {
+                const input = this.template.querySelector('lightning-input[name="cnpjModal"]');
+                if (input) {
+                    input.setCustomValidity('Informe um CNPJ válido');
+                    input.reportValidity();
+                }
                 this.dispatchEvent(new ShowToastEvent({
                     title: 'CNPJ vazio',
                     message: 'Preencha o CNPJ para prosseguir.',
@@ -201,12 +226,23 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
                 }));
                 return;
             } else if (cnpj.length < 14) {
+                const input = this.template.querySelector('lightning-input[name="cnpjModal"]');
+                if (input) {
+                    input.setCustomValidity('CNPJ deve conter 14 dígitos');
+                    input.reportValidity();
+                }
                 this.dispatchEvent(new ShowToastEvent({
                     title: 'CNPJ incompleto',
                     message: 'CNPJ deve conter 14 dígitos.',
                     variant: 'warning',
                 }));
                 return;
+            } else {
+                const input = this.template.querySelector('lightning-input[name="cnpjModal"]');
+                if (input) {
+                    input.setCustomValidity('');
+                    input.reportValidity();
+                }
             }
 
             // Verifica no Salesforce
