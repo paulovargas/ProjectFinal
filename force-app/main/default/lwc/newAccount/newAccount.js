@@ -7,7 +7,7 @@ import USER_ID from '@salesforce/user/Id';
 import NAME_FIELD from '@salesforce/schema/User.Name';
 import SMALL_PHOTO from '@salesforce/schema/User.SmallPhotoUrl';
 import search from '@salesforce/apex/ReceitaWSService.searchCNPJ';
-import verify from '@salesforce/apex/ReceitaWSService.getAccountByCNPJ';
+import verify from '@salesforce/apex/AccountController.getAccountByCNPJ';
 
 export default class NewAccount extends NavigationMixin(LightningElement) {
      @api jsonData;
@@ -18,6 +18,8 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
     @track showCnpjSearchModal = false;
     cnpjModalValue = '';
     foundRecordId;
+    cnpjExist;
+    nameExist;
 
     ownerName;
 
@@ -169,7 +171,7 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
     // Modal: busca por CNPJ (abrir/fechar e input controlado)
     openCnpjSearchModal() {
         // Garante estado limpo ao reabrir
-        this.cnpjModalValue = (this.values?.CNPJ__c || '');
+        this.cnpjModalValue = '';
         this.showCnpjSearchModal = true;
         // limpa qualquer erro preso após montar
         requestAnimationFrame(() => {
@@ -183,19 +185,26 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
     closeCnpjSearchModal() {
         // Fecha modal
         this.showCnpjSearchModal = false;
-        // Limpa estado/validações em seguida
+
+        // Zera o valor controlado imediatamente
+        this.cnpjModalValue = '';
+
+        // Limpa o input (se ainda presente no DOM) no próximo tick
         setTimeout(() => {
             const input = this.template.querySelector('lightning-input[name="cnpjModal"]');
             if (input) {
+                input.value = '';
                 input.setCustomValidity('');
                 input.reportValidity();
-                input.value = '';
             }
-            this.cnpjModalValue = '';
         }, 0);
     }
     handleCnpjModalInput(event) {
         this.cnpjModalValue = event.target.value || '';
+        // Ao digitar, remova mensagens antigas de erro do input do modal
+        const input = event.target;
+        input.setCustomValidity('');
+        input.reportValidity();
     }
 
     // Handler do botão "Buscar" dentro do modal de CNPJ
@@ -237,12 +246,18 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
 
             // Verifica no Salesforce
             const checked = await verify({ cnpj });
+            console.log("Checked : " , checked);
             const foundId = typeof checked === 'string' ? checked : checked?.Id;
+            const cnpjExist = typeof checked === 'string' ? checked : checked?.CNPJ__c;
             if (foundId) {
-                // Existe: abre modal de registro encontrado
+                // Existe: abre modal de registro encontrado e mantém o modal de busca visível
+                // para evitar fechamento abrupto; o modal de encontrado deve ser renderizado (HTML ainda não implementado)
                 this.foundRecordId = foundId;
+                this.cnpjExist = cnpjExist;
+                this.nameExist = checked.toString();
                 this.showFoundModal = true;
-                this.showCnpjSearchModal = false;
+                // NÃO feche o modal de busca aqui para evitar "sumir" sem feedback visual
+                // this.showCnpjSearchModal = false;
                 return;
             }
 
