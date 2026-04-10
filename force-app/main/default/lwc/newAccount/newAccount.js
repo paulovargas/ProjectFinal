@@ -254,7 +254,7 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
                 // para evitar fechamento abrupto; o modal de encontrado deve ser renderizado (HTML ainda não implementado)
                 this.foundRecordId = foundId;
                 this.cnpjExist = cnpjExist;
-                this.nameExist = checked.toString();
+                this.nameExist = checked.Name;
                 this.showFoundModal = true;
                 // NÃO feche o modal de busca aqui para evitar "sumir" sem feedback visual
                 // this.showCnpjSearchModal = false;

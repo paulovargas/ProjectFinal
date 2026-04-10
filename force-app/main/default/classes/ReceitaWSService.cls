@@ -1,6 +1,6 @@
 public with sharing class ReceitaWSService {
 
-    @AuraEnabled(cacheable=false)
+    @AuraEnabled
     public static String searchCNPJ(String cnpj) {
 
         try {
@@ -24,24 +24,5 @@ public with sharing class ReceitaWSService {
         } catch (Exception e) {
             return '{"erro":"' + e.getMessage() + '"}';
         }
-    }
-
-    // Método utilizado pelo LWC newAccount para verificar se já existe Account com o CNPJ informado.
-    // Retorna o Id da Account se existir; caso contrário, retorna null.
-    @AuraEnabled(cacheable=true)
-    public static Id getAccountByCNPJ(String cnpj) {
-        if (String.isBlank(cnpj)) {
-            return null;
-        }
-        String onlyDigits = cnpj.replaceAll('[^0-9]', '');
-
-        // Ajuste o campo CNPJ__c conforme seu org (API name correto do campo de CNPJ em Account)
-        List<Account> accs = [
-            SELECT Id
-            FROM Account
-            WHERE CNPJ__c = :onlyDigits
-            LIMIT 1
-        ];
-        return accs.isEmpty() ? null : accs[0].Id;
     }
 }
