@@ -93,11 +93,7 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
             BillingState: raw.uf || '',
             BillingPostalCode: raw.cep || '',
             BillingCountry: 'Brasil',
-            Description: raw.atividade_principal?.[0]?.text || '',
-            Industry: raw.atividade_principal?.[0]?.text || '',
-            Type: raw.tipo || '',
-            AccountNumber: raw.numero || '',
-            Website: raw.email ? `mailto:${raw.email}` : ''
+            Status_Cadastral__c: raw.situacao || ''
         };
     }
 
@@ -108,10 +104,7 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
     get city() { return this.values.BillingCity || ''; }
     get state() { return this.values.BillingState || ''; }
     get cep() { return this.values.BillingPostalCode || ''; }
-    get type() { return this.values.Type || ''; }
-    get industry() { return this.values.Industry || ''; }
-    get accountNumber() { return this.values.AccountNumber || ''; }
-    get website() { return this.values.Website || ''; }
+    get status() { return this.values.Status_Cadastral__c || ''; }
 
     handleInput(event) {
         const field = event.target.name;
@@ -154,10 +147,7 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
             BillingState: this.values.BillingState,
             BillingPostalCode: this.values.BillingPostalCode,
             BillingCountry: this.values.BillingCountry,
-            Industry: this.values.Industry,
-            Type: this.values.Type,
-            AccountNumber: this.values.AccountNumber,
-            Website: this.values.Website
+            Status_Cadastral__c: this.values.Status_Cadastral__c
         };
     }
 
