@@ -1,233 +1,32 @@
 <template>
-    <lightning-quick-action-panel class="slds-text-heading_medium slds-m-bottom_small" header="New Account">
-        <!-- Wrapper relativo para overlay do spinner -->
-        <div class="slds-is-relative">
-            <!-- Overlay absoluto com spinner -->
-            <template if:true={isLoading}>
-                <div style="position:absolute; inset:0; background:rgba(255,255,255,0.6); z-index: 9000;" class="slds-grid slds-grid_align-center slds-grid_vertical-align-center">
-                    <lightning-spinner alternative-text="Carregando..." size="medium"></lightning-spinner>
-                </div>
-            </template>
-
-            <!-- Modal: registro existente encontrado pelo CNPJ -->
-            <template if:true={showFoundModal}>
-                <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open">
-                    <div class="slds-modal__container">
-                        <header class="slds-modal__header">
-                            <h2 id="modal-heading-01" class="slds-text-heading_medium">Registro já cadastrado</h2>
-                        </header>
-                        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
-                            <p>
-                                Já existe uma Account com este CNPJ.
-                                Deseja editar o registro existente ou cancelar para continuar nesta tela?
-                            </p>
-                        </div>
-                        <footer class="slds-modal__footer">
-                            <lightning-button label="Cancelar" onclick={handleCloseModal}></lightning-button>
-                            <lightning-button class="slds-m-left_small" variant="brand" label="Editar registro" onclick={handleEditRecord}></lightning-button>
-                        </footer>
-                    </div>
-                </section>
-                <div class="slds-backdrop slds-backdrop_open"></div>
-            </template>
-
-            <!-- Modal: Buscar por CNPJ (somente campo e ações) -->
-            <template if:true={showCnpjSearchModal}>
-                <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-02" class="slds-modal slds-fade-in-open">
-                    <div class="slds-modal__container">
-                        <header class="slds-modal__header">
-                            <h2 id="modal-heading-02" class="slds-text-heading_medium">Buscar por CNPJ</h2>
-                        </header>
-                        <div class="slds-modal__content slds-p-around_medium">
-                            <lightning-input
-                                name="cnpjModal"
-                                label="CNPJ"
-                                value={cnpjModalValue}
-                                onchange={handleCnpjModalInput}
-                                message-when-bad-input="Informe um CNPJ válido"
-                            ></lightning-input>
-                        </div>
-                        <footer class="slds-modal__footer">
-                            <lightning-button label="Cancelar" onclick={closeCnpjSearchModal}></lightning-button>
-                            <lightning-button class="slds-m-left_small" variant="brand" label="Buscar" onclick={handleCnpjModalSearch}></lightning-button>
-                        </footer>
-                    </div>
-                </section>
-                <div class="slds-backdrop slds-backdrop_open"></div>
-            </template>
-
-            <form class="slds-p-around_medium" onsubmit={handleSave}>
-                <lightning-messages></lightning-messages>
-
-            <!-- Account Information -->
-            <div class="slds-box slds-m-bottom_medium">
-                <header class="slds-text-heading_medium slds-m-bottom_small">Account Information</header>
-                <div class="slds-grid slds-wrap">
-
-                    <!-- LEFT -->
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <!-- Input + Botão alinhados -->
-                            <div
-                                class="slds-form-element__control slds-grid slds-grid_vertical-align-center slds-gutters">
-                                <!-- Input -->
-                                <div class="slds-col">
-                                    <lightning-input name="CNPJ__c" label="CNPJ" value={cnpj} data-index="0"
-                                        onchange={handleInput} required>
-                                    </lightning-input>
-                                </div>
-
-                                <!-- Botão -->
-                                <div class="slds-col slds-text-body_regular">
-                                    <lightning-button label="Search" variant="brand" onclick={handleSearchCnpj}>
-                                    </lightning-button>
-                                    <lightning-button class="slds-m-left_small" label="Buscar por CNPJ (Modal)" onclick={openCnpjSearchModal}></lightning-button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="slds-form-element">
-                            <label class="slds-form-element__label">Account Owner</label>
-
-                            <div class="slds-form-element__control">
-                                <div class="slds-media slds-media_center">
-                                    <div class="slds-media__figure">
-                                        <span class="slds-avatar slds-avatar_circle slds-avatar_small">
-                                            <img src={ownerPhoto} alt="User Avatar" />
-                                        </span>
-                                    </div>
-
-                                    <!-- Nome do usuário -->
-                                    <div class="slds-media__body">
-                                        <span>{ownerName}</span>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Account Name" data-index="1" value={name}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Parent Account" data-index="2" value={fieldValue2}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Account Number" data-index="3" value={fieldValue3}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Account Site" data-index="4" value={fieldValue4}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Type" data-index="5" value={type}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Industry" data-index="6" value={industry}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Annual Revenue" data-index="7" value={fieldValue7}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                    </div>
-
-                    <!-- RIGHT -->
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-left_small">
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Rating" data-index="8" value={fieldValue8}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Phone" data-index="9" value={phone}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Fax" data-index="10" value={fieldValue10}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Website" data-index="11" value={fieldValue11}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Ticker Symbol" data-index="12" value={fieldValue12}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Ownership" data-index="13" value={fieldValue13}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Employees" data-index="14" value={fieldValue14}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="SIC Code" data-index="15" value={fieldValue15}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- Address Information -->
-            <div class="slds-box slds-m-bottom_medium">
-                <header class="slds-text-heading_medium slds-m-bottom_small">Address Information</header>
-                <div class="slds-grid slds-wrap">
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Billing Zip/Postal Code" data-index="16" value={cep}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Billing Street" data-index="16" value={street}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Billing City" data-index="17" value={city}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                        <div class="slds-p-bottom_small slds-form-element">
-                            <lightning-input label="Billing State" data-index="18" value={state}
-                                onchange={handleInput}></lightning-input>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer padrão Salesforce: botões alinhados à direita -->
-            <div class="slds-grid slds-grid_align-end slds-p-top_small slds-text-body_regular" role="toolbar">
-                <lightning-button label="Cancel" onclick={handleCancel}></lightning-button>
-                <lightning-button class="slds-m-left_small" label="Save" type="submit" variant="brand"></lightning-button>
-            </div>
-
-            </form>
+    <lightning-quick-action-panel class="slds-text-heading_medium slds-m-bottom_small" header="New Account with CNPJ">
+        <div class="slds-p-around_medium">
+            <lightning-button label="Search" variant="brand" onclick={handleSearchCnpj}></lightning-button>
         </div>
+
+        <!-- Modal: Buscar por CNPJ (aberto automaticamente ao acessar) -->
+        <template if:true={showCnpjSearchModal}>
+            <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-02" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <h2 id="modal-heading-02" class="slds-text-heading_medium">Search CNPJ</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-input
+                            name="cnpjModal"
+                            label="CNPJ"
+                            value={cnpjModalValue}
+                            onchange={handleCnpjModalInput}
+                            message-when-bad-input="Informe um CNPJ válido"
+                        ></lightning-input>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Cancelar" onclick={closeCnpjSearchModal}></lightning-button>
+                        <lightning-button class="slds-m-left_small" variant="brand" label="Buscar" onclick={handleCnpjModalSearch}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
     </lightning-quick-action-panel>
 </template>

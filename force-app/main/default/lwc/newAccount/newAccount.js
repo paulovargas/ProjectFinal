@@ -31,6 +31,10 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
 
     connectedCallback() {
         this.loadData();
+        // Abrir o modal de busca por CNPJ automaticamente ao acessar a página
+        this.showCnpjSearchModal = true;
+        // Sincroniza o valor inicial do campo no modal com o CNPJ atual (se houver)
+        this.cnpjModalValue = (this.values?.CNPJ__c || '');
     }
 
     loadData() {
