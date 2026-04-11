@@ -50,14 +50,11 @@ private class ReceitaWSServiceTest {
     Test.setMock(HttpCalloutMock.class, new ReceitaHttpMock(200, successJson));
 
     Test.startTest();
-    // O método Apex retorna uma String (JSON bruto) conforme uso atual no LWC
-    String result = ReceitaWSService.searchCNPJ('12345678000199');
+    // Agora o método retorna Map<String,Object>
+    Map<String, Object> parsed = ReceitaWSService.searchCNPJ('12345678000199');
     Test.stopTest();
 
-    System.assertNotEquals(null, result, 'Should return a JSON string');
-    Map<String, Object> parsed = (Map<String, Object>) JSON.deserializeUntyped(
-      result
-    );
+    System.assertNotEquals(null, parsed, 'Should return a Map');
     System.assertEquals('Empresa Teste LTDA', (String) parsed.get('nome'));
     System.assertEquals('12345678000199', (String) parsed.get('cnpj'));
     System.assertEquals('Candelária', (String) parsed.get('municipio'));
@@ -75,34 +72,31 @@ private class ReceitaWSServiceTest {
     Test.setMock(HttpCalloutMock.class, new ReceitaHttpMock(200, errorJson));
 
     Test.startTest();
-    String result = ReceitaWSService.searchCNPJ('00000000000000');
+    Map<String, Object> parsed = ReceitaWSService.searchCNPJ('00000000000000');
     Test.stopTest();
 
     System.assertNotEquals(
       null,
-      result,
-      'Should return a JSON string even on logical error'
-    );
-    Map<String, Object> parsed = (Map<String, Object>) JSON.deserializeUntyped(
-      result
+      parsed,
+      'Should return a Map even on logical error'
     );
     System.assertEquals('CNPJ inválido', (String) parsed.get('erro'));
   }
 
   @IsTest
-  static void searchCNPJ_httpFailure_returnsBlank() {
+  static void searchCNPJ_httpFailure_returnsErroMap() {
     // Simula HTTP diferente de 200 com payload vazio
     Test.setMock(HttpCalloutMock.class, new ReceitaHttpMock(500, null));
 
-    // Validamos que o método trata a falha e retorna vazio (contrato real observado)
     Test.startTest();
-    String result = ReceitaWSService.searchCNPJ('12345678000199');
+    Map<String, Object> result = ReceitaWSService.searchCNPJ('12345678000199');
     Test.stopTest();
 
+    System.assertNotEquals(null, result, 'Should return a Map on HTTP failure');
     System.assertEquals(
       true,
-      String.isBlank(result),
-      'Em falha HTTP, o serviço deve retornar string vazia ou em branco'
+      result.containsKey('erro'),
+      'Must include erro key'
     );
   }
 
