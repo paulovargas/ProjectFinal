@@ -1,57 +1,109 @@
 <template>
-    <lightning-quick-action-panel class="slds-text-heading_medium slds-m-bottom_small" header="New Account with CNPJ">
-        <div class="slds-p-around_medium slds-align_absolute-center slds-text-body_regular">
-            <!-- Botão com tipografia padrão SLDS herdada do container -->
-            <lightning-button label="Search CNPJ" variant="brand" onclick={openCnpjSearchModal}></lightning-button>
+  <lightning-quick-action-panel
+    class="slds-text-heading_medium slds-m-bottom_small"
+    header="New Account with CNPJ"
+  >
+    <div
+      class="slds-p-around_medium slds-align_absolute-center slds-text-body_regular"
+    >
+      <!-- Botão com tipografia padrão SLDS herdada do container -->
+      <lightning-button
+        data-id="openModalBtn"
+        label="Search CNPJ"
+        variant="brand"
+        onclick={openCnpjSearchModal}
+      ></lightning-button>
+    </div>
+
+    <!-- Modal: Buscar por CNPJ (aberto automaticamente ao acessar) -->
+    <template if:true={showCnpjSearchModal}>
+      <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="modal-heading-02"
+        class="slds-modal slds-fade-in-open"
+      >
+        <div class="slds-modal__container">
+          <header class="slds-modal__header">
+            <h2 id="modal-heading-02" class="slds-text-heading_medium">
+              Search CNPJ
+            </h2>
+          </header>
+          <div
+            class="slds-modal__content slds-p-around_medium slds-text-body_regular"
+          >
+            <lightning-input
+              name="cnpjModal"
+              label="CNPJ"
+              value={cnpjModalValue}
+              onchange={handleCnpjModalInput}
+              message-when-bad-input="Informe um CNPJ válido"
+            ></lightning-input>
+          </div>
+          <footer class="slds-modal__footer slds-text-body_regular">
+            <lightning-button
+              data-id="cancelModalBtn"
+              label="Cancel"
+              onclick={closeCnpjSearchModal}
+            ></lightning-button>
+            <lightning-button
+              data-id="searchModalBtn"
+              class="slds-m-left_small"
+              variant="brand"
+              label="Search"
+              onclick={handleCnpjModalSearch}
+            ></lightning-button>
+          </footer>
         </div>
+      </section>
+      <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
 
-        <!-- Modal: Buscar por CNPJ (aberto automaticamente ao acessar) -->
-        <template if:true={showCnpjSearchModal}>
-            <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-02" class="slds-modal slds-fade-in-open">
-                <div class="slds-modal__container">
-                    <header class="slds-modal__header">
-                        <h2 id="modal-heading-02" class="slds-text-heading_medium">Search CNPJ</h2>
-                    </header>
-                    <div class="slds-modal__content slds-p-around_medium slds-text-body_regular">
-                        <lightning-input
-                            name="cnpjModal"
-                            label="CNPJ"
-                            value={cnpjModalValue}
-                            onchange={handleCnpjModalInput}
-                            message-when-bad-input="Informe um CNPJ válido"
-                        ></lightning-input>
-                    </div>
-                    <footer class="slds-modal__footer slds-text-body_regular">
-                        <lightning-button label="Cancel" onclick={closeCnpjSearchModal}></lightning-button>
-                        <lightning-button class="slds-m-left_small" variant="brand" label="Search" onclick={handleCnpjModalSearch}></lightning-button>
-                    </footer>
-                </div>
-            </section>
-            <div class="slds-backdrop slds-backdrop_open"></div>
-        </template>
-
-        <!-- Modal: Registro encontrado (oferece Editar) -->
-        <template if:true={showFoundModal}>
-            <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-found" class="slds-modal slds-fade-in-open">
-                <div class="slds-modal__container">
-                    <header class="slds-modal__header">
-                        <h2 id="modal-heading-found" class="slds-text-heading_medium">Registro já cadastrado</h2>
-                    </header>
-                    <div class="slds-modal__content slds-p-around_medium slds-text-body_regular">
-                        <p>Já existe uma conta com este CNPJ.</p>
-                        <template if:true={foundRecordId}>
-                            <p class="slds-m-top_small">CNPJ: {cnpjExist}</p>
-                            <p class="slds-m-top_small">Name: {nameExist}</p>
-                        </template>
-                        <p class="slds-m-top_small">Deseja abrir este registro para edição?</p>
-                    </div>
-                    <footer class="slds-modal__footer slds-text-body_regular">
-                        <lightning-button label="Cancel" onclick={handleCloseModal}></lightning-button>
-                        <lightning-button class="slds-m-left_small" variant="brand" label="Edit" onclick={handleEditRecord}></lightning-button>
-                    </footer>
-                </div>
-            </section>
-            <div class="slds-backdrop slds-backdrop_open"></div>
-        </template>
-    </lightning-quick-action-panel>
+    <!-- Modal: Registro encontrado (oferece Editar) -->
+    <template if:true={showFoundModal}>
+      <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="modal-heading-found"
+        class="slds-modal slds-fade-in-open"
+      >
+        <div class="slds-modal__container">
+          <header class="slds-modal__header">
+            <h2 id="modal-heading-found" class="slds-text-heading_medium">
+              Registro já cadastrado
+            </h2>
+          </header>
+          <div
+            class="slds-modal__content slds-p-around_medium slds-text-body_regular"
+          >
+            <p>Já existe uma conta com este CNPJ.</p>
+            <template if:true={foundRecordId}>
+              <p class="slds-m-top_small">CNPJ: {cnpjExist}</p>
+              <p class="slds-m-top_small">Name: {nameExist}</p>
+            </template>
+            <p class="slds-m-top_small">
+              Deseja abrir este registro para edição?
+            </p>
+          </div>
+          <footer class="slds-modal__footer slds-text-body_regular">
+            <lightning-button
+              data-id="foundCloseBtn"
+              label="Cancel"
+              onclick={handleCloseModal}
+            ></lightning-button>
+            <lightning-button
+              data-id="foundEditBtn"
+              class="slds-m-left_small"
+              variant="brand"
+              label="Edit"
+              onclick={handleEditRecord}
+            ></lightning-button>
+          </footer>
+        </div>
+      </section>
+      <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+  </lightning-quick-action-panel>
 </template>
