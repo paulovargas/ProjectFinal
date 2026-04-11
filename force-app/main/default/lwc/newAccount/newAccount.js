@@ -2,8 +2,7 @@ import { LightningElement, api, track } from "lwc";
 import { NavigationMixin } from "lightning/navigation";
 import { encodeDefaultFieldValues } from "lightning/pageReferenceUtils";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
-import search from "@salesforce/apex/ReceitaWSService.searchCNPJ";
-import verify from "@salesforce/apex/AccountController.getAccountByCNPJ";
+import getOrFetchByCNPJ from "@salesforce/apex/AccountController.getOrFetchByCNPJ";
 
 export default class NewAccount extends NavigationMixin(LightningElement) {
   @api jsonData;
@@ -204,29 +203,36 @@ export default class NewAccount extends NavigationMixin(LightningElement) {
         return;
       }
 
-      const checked = await verify({ cnpj });
-      const foundId = typeof checked === "string" ? checked : checked?.Id;
+      // Usa método unificado no Apex para orquestrar (consulta + API)
+      const result = await getOrFetchByCNPJ({ cnpj });
 
-      if (foundId) {
-        this.foundRecordId = foundId;
-        this.cnpjExist = checked?.CNPJ__c;
-        this.nameExist = checked?.Name;
+      if (!result || result.success === false) {
+        const message = result?.message || "Falha ao consultar CNPJ.";
+        this.values = {};
+        this.showError("Erro na consulta", message);
+        return;
+      }
+
+      // Se já existe conta
+      if (result.foundAccount) {
+        const acc = result.foundAccount;
+        this.foundRecordId = acc.Id;
+        this.cnpjExist = acc.CNPJ__c;
+        this.nameExist = acc.Name;
         this.showFoundModal = true;
         return;
       }
 
-      const result = await search({ cnpj });
-      const data = JSON.parse(result);
-
-      if (data.erro) {
-        this.values = {};
-        this.showError("Erro na consulta", data.erro);
+      // Caso sem conta, usa dados da Receita
+      if (result.receitaData) {
+        this.values = this.mapReceitaToAccount(result.receitaData);
+        this.openNewWithDefaults();
+        this.showCnpjSearchModal = false;
         return;
       }
 
-      this.values = this.mapReceitaToAccount(data);
-      this.openNewWithDefaults();
-      this.showCnpjSearchModal = false;
+      // Fallback defensivo
+      this.showError("Erro", "Resposta inesperada do servidor.");
     } catch (error) {
       console.error(error);
       this.showError("Erro", "Falha ao processar a busca por CNPJ.");
