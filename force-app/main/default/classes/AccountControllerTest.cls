@@ -1,78 +1,156 @@
-@IsTest
-private class AccountControllerTest {
-  @TestSetup
-  static void setupData() {
-    // Cria um registro de Conta com CNPJ para testes de consulta
+@isTest
+public class AccountControllerTest {
+  // Dados reutilizáveis
+  @testSetup
+  static void setup() {
     Account acc = new Account(
-      Name = 'Conta Teste',
-      CNPJ__c = '11222333000181',
-      Phone = '51999999999',
-      BillingStreet = 'Rua Teste, 123',
-      BillingCity = 'Candelária',
-      BillingState = 'RS',
-      BillingPostalCode = '96930-000',
-      BillingCountry = 'Brasil'
+      Name = 'Empresa Teste',
+      CNPJ__c = '12345678000100'
     );
     insert acc;
   }
 
-  @IsTest
-  static void getAccountByCNPJ_returnsNull_whenBlank() {
+  // Testa: retorno quando encontra Account
+  @isTest
+  static void deveRetornarAccountPorCNPJ() {
     Test.startTest();
-    Account a1 = AccountController.getAccountByCNPJ(null);
-    Account a2 = AccountController.getAccountByCNPJ('');
-    Account a3 = AccountController.getAccountByCNPJ('   ');
+    Account acc = AccountController.getAccountByCNPJ('12345678000100');
     Test.stopTest();
 
-    System.assertEquals(null, a1, 'CNPJ nulo deve retornar null');
-    System.assertEquals(null, a2, 'CNPJ vazio deve retornar null');
-    System.assertEquals(null, a3, 'CNPJ em branco deve retornar null');
+    System.assertNotEquals(null, acc);
+    System.assertEquals('Empresa Teste', acc.Name);
   }
 
-  @IsTest
-  static void getAccountByCNPJ_returnsRecord_whenExists() {
+  // Testa: CNPJ vazio
+  @isTest
+  static void naoDeveRetornarQuandoCNPJVazio() {
     Test.startTest();
-    Account found = AccountController.getAccountByCNPJ('11222333000181');
+    Account acc = AccountController.getAccountByCNPJ('');
     Test.stopTest();
 
-    System.assertNotEquals(null, found, 'Deve encontrar uma Conta pelo CNPJ');
-    System.assertEquals(
-      '11222333000181',
-      found.CNPJ__c,
-      'CNPJ deve corresponder'
+    System.assertEquals(null, acc);
+  }
+
+  // Testa: getOrFetch retorna Account existente
+  @isTest
+  static void deveRetornarAccountExistente() {
+    Test.startTest();
+    AccountController.GetOrFetchResult result = AccountController.getOrFetchByCNPJ(
+      '12345678000100'
     );
-    System.assertEquals(
-      'Conta Teste',
-      found.Name,
-      'Nome deve corresponder aos dados de teste'
+    Test.stopTest();
+
+    System.assertEquals(true, result.success);
+    System.assertNotEquals(null, result.foundAccount);
+    System.assertEquals(null, result.receitaData);
+  }
+
+  // Testa: CNPJ inválido
+  @isTest
+  static void deveFalharQuandoCNPJInvalido() {
+    Test.startTest();
+    AccountController.GetOrFetchResult result = AccountController.getOrFetchByCNPJ(
+      '123'
     );
-    // Verificação pontual de alguns campos comuns para assegurar que o describe dinâmico os incluiu
-    System.assertEquals(
-      'Candelária',
-      found.BillingCity,
-      'BillingCity deve corresponder aos dados de teste'
+    Test.stopTest();
+
+    System.assertEquals(false, result.success);
+    System.assertEquals('CNPJ deve conter 14 dígitos', result.message);
+  }
+
+  // Testa: CNPJ vazio
+  @isTest
+  static void deveFalharQuandoCNPJVazio() {
+    Test.startTest();
+    AccountController.GetOrFetchResult result = AccountController.getOrFetchByCNPJ(
+      ''
     );
+    Test.stopTest();
+
+    System.assertEquals(false, result.success);
+    System.assertEquals('CNPJ vazio', result.message);
+  }
+
+  // Testa: busca na Receita (sucesso)
+  @isTest
+  static void deveBuscarNaReceitaQuandoNaoExiste() {
+    Test.setMock(HttpCalloutMock.class, new ReceitaMockSucesso());
+
+    Test.startTest();
+    AccountController.GetOrFetchResult result = AccountController.getOrFetchByCNPJ(
+      '11111111000111'
+    );
+    Test.stopTest();
+
+    System.assertEquals(true, result.success);
+    System.assertEquals(null, result.foundAccount);
+    System.assertNotEquals(null, result.receitaData);
     System.assertEquals(
-      'Brasil',
-      found.BillingCountry,
-      'BillingCountry deve corresponder aos dados de teste'
+      'Empresa Mock',
+      (String) result.receitaData.get('nome')
     );
   }
 
-  @IsTest
-  static void getAccountByCNPJ_FLS_respectsReadableFields() {
-    // Observação: em muitas orgs, a manipulação de FLS em testes é limitada.
-    // Validamos que o método executa sem exceções não tratadas e retorna um registro.
-    // Para cenários estritos de FLS, considere adicionar um Permission Set e usar System.runAs
-    // com um usuário sem acesso a determinados campos. Aqui fazemos uma checagem de resiliência.
+  // Testa: Receita retorna erro
+  @isTest
+  static void deveFalharQuandoReceitaRetornaErro() {
+    Test.setMock(HttpCalloutMock.class, new ReceitaMockErro());
+
     Test.startTest();
-    Account found = AccountController.getAccountByCNPJ('11222333000181');
+    AccountController.GetOrFetchResult result = AccountController.getOrFetchByCNPJ(
+      '22222222000122'
+    );
     Test.stopTest();
 
-    System.assertNotEquals(
-      null,
-      found,
-      'O método deve retornar um registro no contexto padrão de testes'
+    System.assertEquals(false, result.success);
+    System.assertEquals('Erro na API', result.message);
+  }
+
+  // Testa: CNPJ com máscara (normalização)
+  @isTest
+  static void deveBuscarComCNPJFormatado() {
+    Test.startTest();
+    AccountController.GetOrFetchResult result = AccountController.getOrFetchByCNPJ(
+      '12.345.678/0001-00'
     );
+    Test.stopTest();
+
+    System.assertEquals(true, result.success);
+  }
+
+  // Testa: garante que método não quebra com null
+  @isTest
+  static void deveTratarCNPJNull() {
+    Test.startTest();
+    Account acc = AccountController.getAccountByCNPJ(null);
+    Test.stopTest();
+
+    System.assertEquals(null, acc);
+  }
+
+  // =========================
+  // 🔧 MOCKS
+  // =========================
+
+  // Mock sucesso
+  class ReceitaMockSucesso implements HttpCalloutMock {
+    public HTTPResponse respond(HTTPRequest req) {
+      HttpResponse res = new HttpResponse();
+      res.setHeader('Content-Type', 'application/json');
+      res.setBody('{"nome": "Empresa Mock", "situacao": "ATIVA"}');
+      res.setStatusCode(200);
+      return res;
+    }
+  }
+
+  // Mock erro (retorna "erro" no JSON)
+  class ReceitaMockErro implements HttpCalloutMock {
+    public HTTPResponse respond(HTTPRequest req) {
+      HttpResponse res = new HttpResponse();
+      res.setHeader('Content-Type', 'application/json');
+      res.setBody('{"erro": "Erro na API"}');
+      res.setStatusCode(200);
+      return res;
+    }
   }
 }

@@ -1,125 +1,103 @@
-@IsTest
-private class ReceitaWSServiceTest {
-  // HttpCalloutMock simples para simular respostas da API externa da Receita
-  private class ReceitaHttpMock implements HttpCalloutMock {
-    private Integer statusCode;
-    private String body;
-
-    ReceitaHttpMock(Integer statusCode, String body) {
-      this.statusCode = statusCode;
-      this.body = body;
-    }
-
+@isTest
+public class ReceitaWSServiceTest {
+  // Mock de sucesso
+  class ReceitaSucessoMock implements HttpCalloutMock {
     public HTTPResponse respond(HTTPRequest req) {
-      HTTPResponse res = new HTTPResponse();
-      res.setStatusCode(statusCode);
-      if (body != null)
-        res.setBody(body);
+      HttpResponse res = new HttpResponse();
+      res.setHeader('Content-Type', 'application/json');
+      res.setBody('{"nome": "Empresa Teste", "situacao": "ATIVA"}');
+      res.setStatusCode(200);
       return res;
     }
   }
 
-  @TestSetup
-  static void setupData() {
-    // Garante que não há dependência necessária; Account não é exigida para testes de consulta externa
-    // Se o serviço verificar Account existente, isso é coberto em AccountControllerTest
-  }
-
-  @IsTest
-  static void searchCNPJ_success_mapsExpectedFields() {
-    // Simula um payload JSON de sucesso retornado pela API externa
-    String successJson = JSON.serialize(
-      new Map<String, Object>{
-        'nome' => 'Empresa Teste LTDA',
-        'cnpj' => '12345678000199',
-        'telefone' => '(51) 99999-9999',
-        'logradouro' => 'Rua Teste',
-        'numero' => '123',
-        'complemento' => 'Sala 5',
-        'bairro' => 'Centro',
-        'municipio' => 'Candelária',
-        'uf' => 'RS',
-        'cep' => '96930-000',
-        'situacao' => 'ATIVA',
-        'atividade_principal' => new List<Object>{
-          new Map<String, Object>{ 'text' => 'Tecnologia' }
-        }
-      }
-    );
-
-    Test.setMock(HttpCalloutMock.class, new ReceitaHttpMock(200, successJson));
-
-    Test.startTest();
-    // Agora o método retorna Map<String,Object>
-    Map<String, Object> parsed = ReceitaWSService.searchCNPJ('12345678000199');
-    Test.stopTest();
-
-    System.assertNotEquals(null, parsed, 'Should return a Map');
-    System.assertEquals('Empresa Teste LTDA', (String) parsed.get('nome'));
-    System.assertEquals('12345678000199', (String) parsed.get('cnpj'));
-    System.assertEquals('Candelária', (String) parsed.get('municipio'));
-    System.assertEquals('RS', (String) parsed.get('uf'));
-    System.assertEquals('96930-000', (String) parsed.get('cep'));
-  }
-
-  @IsTest
-  static void searchCNPJ_errorFlag_returnsErroPayload() {
-    // Simula um payload de erro retornado pela API externa
-    String errorJson = JSON.serialize(
-      new Map<String, Object>{ 'erro' => 'CNPJ inválido' }
-    );
-
-    Test.setMock(HttpCalloutMock.class, new ReceitaHttpMock(200, errorJson));
-
-    Test.startTest();
-    Map<String, Object> parsed = ReceitaWSService.searchCNPJ('00000000000000');
-    Test.stopTest();
-
-    System.assertNotEquals(
-      null,
-      parsed,
-      'Should return a Map even on logical error'
-    );
-    System.assertEquals('CNPJ inválido', (String) parsed.get('erro'));
-  }
-
-  @IsTest
-  static void searchCNPJ_httpFailure_returnsErroMap() {
-    // Simula HTTP diferente de 200 com payload vazio
-    Test.setMock(HttpCalloutMock.class, new ReceitaHttpMock(500, null));
-
-    Test.startTest();
-    Map<String, Object> result = ReceitaWSService.searchCNPJ('12345678000199');
-    Test.stopTest();
-
-    System.assertNotEquals(null, result, 'Should return a Map on HTTP failure');
-    System.assertEquals(
-      true,
-      result.containsKey('erro'),
-      'Must include erro key'
-    );
-  }
-
-  @IsTest
-  static void getAccountByCNPJ_passthrough_verifiesContract() {
-    // Se ReceitaWSService expuser um getAccountByCNPJ que consulta Salesforce (via AccountController),
-    // podemos validar o comportamento básico. Se não existir, este teste apenas verifica se o método é chamável.
-    // Ajuste caso a assinatura da classe seja diferente.
-    // NOTA: Se ReceitaWSService não implementar getAccountByCNPJ, comente ou remova este teste.
-
-    // Defensivo: envolve em try-catch para não falhar a suíte se o método estiver ausente na sua org.
-    Boolean callable = true;
-    try {
-      // Tente chamar se existir (a assinatura deve corresponder).
-      // Substitua pela assinatura correta se necessário.
-      // Exemplo (comentado): Account a = ReceitaWSService.getAccountByCNPJ('11222333000181');
-    } catch (Exception ex) {
-      callable = false;
+  // Mock de erro HTTP
+  class ReceitaErroHttpMock implements HttpCalloutMock {
+    public HTTPResponse respond(HTTPRequest req) {
+      HttpResponse res = new HttpResponse();
+      res.setStatusCode(404);
+      res.setBody('Not Found');
+      return res;
     }
-    System.assertEquals(
-      true,
-      callable,
-      'Presença/contrato de ReceitaWSService.getAccountByCNPJ verificados (ajuste se o método não existir).'
+  }
+
+  // Mock de exceção (simula falha de rede)
+  class ReceitaExceptionMock implements HttpCalloutMock {
+    public HTTPResponse respond(HTTPRequest req) {
+      throw new CalloutException('Timeout simulado');
+    }
+  }
+
+  // Teste: sucesso
+  @isTest
+  static void deveRetornarDadosQuandoSucesso() {
+    Test.setMock(HttpCalloutMock.class, new ReceitaSucessoMock());
+
+    Test.startTest();
+    Map<String, Object> result = ReceitaWSService.searchCNPJ('12345678000100');
+    Test.stopTest();
+
+    System.assertEquals('Empresa Teste', result.get('nome'));
+    System.assertEquals('ATIVA', result.get('situacao'));
+  }
+
+  // Teste: erro HTTP
+  @isTest
+  static void deveRetornarErroQuandoHttpDiferenteDe200() {
+    Test.setMock(HttpCalloutMock.class, new ReceitaErroHttpMock());
+
+    Test.startTest();
+    Map<String, Object> result = ReceitaWSService.searchCNPJ('12345678000100');
+    Test.stopTest();
+
+    System.assert(result.containsKey('erro'));
+    System.assertEquals('HTTP 404', result.get('erro'));
+  }
+
+  // Teste: exceção de callout
+  @isTest
+  static void deveRetornarErroQuandoCalloutFalha() {
+    Test.setMock(HttpCalloutMock.class, new ReceitaExceptionMock());
+
+    Test.startTest();
+    Map<String, Object> result = ReceitaWSService.searchCNPJ('12345678000100');
+    Test.stopTest();
+
+    System.assert(result.containsKey('erro'));
+    System.assert(((String) result.get('erro')).contains('Falha de callout'));
+  }
+
+  // Teste: CNPJ vazio
+  @isTest
+  static void deveFalharQuandoCNPJVazio() {
+    Test.startTest();
+    Map<String, Object> result = ReceitaWSService.searchCNPJ('');
+    Test.stopTest();
+
+    System.assertEquals('CNPJ vazio', result.get('erro'));
+  }
+
+  // Teste: CNPJ inválido
+  @isTest
+  static void deveFalharQuandoCNPJInvalido() {
+    Test.startTest();
+    Map<String, Object> result = ReceitaWSService.searchCNPJ('123');
+    Test.stopTest();
+
+    System.assertEquals('CNPJ deve conter 14 dígitos', result.get('erro'));
+  }
+
+  // Teste: normalização (com máscara)
+  @isTest
+  static void deveNormalizarCNPJ() {
+    Test.setMock(HttpCalloutMock.class, new ReceitaSucessoMock());
+
+    Test.startTest();
+    Map<String, Object> result = ReceitaWSService.searchCNPJ(
+      '12.345.678/0001-00'
     );
+    Test.stopTest();
+
+    System.assertEquals('Empresa Teste', result.get('nome'));
   }
 }
